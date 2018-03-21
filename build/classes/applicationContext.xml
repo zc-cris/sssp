@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+		
+	<!-- 1. 配置自动扫描的包 -->
+	<context:component-scan base-package="com.zc.cris.sssp">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+	
+	
+	<!-- 2. 配置数据源 -->
+	<context:property-placeholder location="classpath:dataSource.properties" />
+
+	<!-- 2.1 通过导入外部properties文件的方式配置数据库的参数 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="user" value="${jdbc.name}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+		<property name="driverClass" value="${jdbc.driverClass}"></property>
+		<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+
+		<property name="initialPoolSize" value="${jdbc.initPoolSize}"></property>
+		<property name="maxPoolSize" value="${jdbc.maxPoolSize}"></property>
+
+		<!-- 2.2 配置其他信息 -->
+	</bean>
+	
+	<!-- 3. 配置 jpa 的entityManagerFactory -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"></bean>
+		</property>
+		<property name="packagesToScan" value="com.zc.cris.sssp.entities"></property>
+		<property name="jpaProperties">
+			<props>
+				<!-- 生成的数据表的列的映射策略 -->
+				<prop key="hibernate.ejb.naming_strategy">org.hibernate.cfg.ImprovedNamingStrategy</prop>
+				<!-- hibernate 基本属性 -->
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				
+				<!-- 配置二级缓存 -->
+				<prop key="hibernate.cache.use_second_level_cache">true</prop>
+				<prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</prop>
+				<prop key="hibernate.cache.use_query_cache">true</prop>
+			</props>
+		</property>
+			<!-- 
+			配置 JPA 使用二级缓存的策略
+			ALL:所有的实体类都被缓存
+			NONE：所有的实体类都不被缓存
+			ENABLE_SELECTIVE：标识 @Cacheable（true）注解的实体类将被缓存（用的最多的就是这种）
+			DISABLE_SELECTIVE:缓存除标识 @Cacheable（false）以外的所有实体类
+			UNSPECIFIED:默认值，JPA 产品默认值将被使用
+		-->
+		<property name="sharedCacheMode" value="ENABLE_SELECTIVE"></property>
+	</bean>
+	
+	<!-- 4. 配置 jpa 使用的事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory"></property>
+	</bean>
+	
+	<!-- 4.1 配置支持基于注解的事务配置 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>	
+	
+	<!-- 5. 配置springdata -->
+	<!-- 加入jpa 的命名空间 -->
+	<!-- base-package 属性用于扫描 Repository Bean 所在的package -->
+	<jpa:repositories base-package="com.zc.cris.sssp" entity-manager-factory-ref="entityManagerFactory">
+	</jpa:repositories>
+
+</beans>
