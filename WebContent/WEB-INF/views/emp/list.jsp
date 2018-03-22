@@ -8,11 +8,33 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Insert title here</title>
+<script type="text/javascript"
+	src="${pageContext.request.contextPath }/scripts/jquery-3.3.1.min.js">
+</script>
+
+<script type="text/javascript">
+	$(function() {
+		// 通过jquery 获取指定的超链接的时候，最好是使用 class属性，如果使用id 属性则会出现无法选定的问题
+		$(".delete").click(function(){
+			var val = $(this).next(":hidden").val();
+			var flag = confirm("确定要删除  "+ val +" 的信息吗？");
+			if(flag){
+				var url = $(this).attr("href");
+				$("form").attr("action", url).submit();
+			}
+			return false;
+		})
+		
+	})
+</script>
 </head>
 <body>
+	
+	<form action="" method="post">
+		<input type="hidden" name="_method" value="DELETE">
+	</form>
 
 	<c:if test="${page == null || page.numberOfElements == 0}">
-	 	<%-- <c:out value="alert('没有任何记录')"></c:out> --%>	
 	 	没有任何记录
 	</c:if>
 	<c:if test="${page != null && page.numberOfElements >0 }">
@@ -39,8 +61,11 @@
 						<fmt:formatDate value="${emp.createTime }" pattern="yyyy-MM-dd hh:mm:ss" />
 					</td>
 					<td>${emp.department.name }</td>
-					<td><a href="">修改</a></td>
-					<td><a href="">删除</a></td>
+					<td><a href="emp/${emp.id}" >修改</a></td>
+					<td>
+						<a href="emp/${emp.id}" class="delete">删除</a>
+						<input type="hidden" value="${emp.name }"/>
+					</td>
 				</tr>
 			</c:forEach>
 			

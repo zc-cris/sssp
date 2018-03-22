@@ -19,8 +19,7 @@
 		<property name="suffix" value=".jsp"></property>
 	</bean>
 
-	<mvc:default-servlet-handler />
-	<!-- 在实际开发中，还需要配置mvc：annotation-driven 标签 -->
+	<mvc:default-servlet-handler/>
 	<mvc:annotation-driven></mvc:annotation-driven>
 
 
